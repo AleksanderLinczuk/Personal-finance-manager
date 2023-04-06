@@ -6,21 +6,62 @@ import pl.sda.finance_manager.entity.Category;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
-public class CategoryRepository {
-    public void create(Category category){
+public class CategoryRepository implements Repository<Category, Long> {
+    @Override
+    public void create(Category category) {
         EntityManager entityManager = DbConnection.getEntityManager();
         entityManager.getTransaction().begin();
         entityManager.persist(category);
         entityManager.getTransaction().commit();
         entityManager.close();
     }
-    public Set<Category> findAll(){
+
+    @Override
+    public Set<Category> findAll() {
         EntityManager entityManager = DbConnection.getEntityManager();
         List<Category> categories = entityManager.createQuery("SELECT FROM Category", Category.class).getResultList();
         entityManager.close();
         return new HashSet<>(categories);
+    }
+
+    @Override
+    public Category findById(Long id) {
+        EntityManager entityManager = DbConnection.getEntityManager();
+        Category category = entityManager.find(Category.class, id);
+        entityManager.close();
+        return category;
+    }
+
+    @Override
+    public void update(Category category) {
+        EntityManager entityManager = DbConnection.getEntityManager();
+        entityManager.getTransaction().begin();
+        entityManager.merge(category);
+        entityManager.getTransaction().commit();
+        entityManager.close();
+    }
+
+    @Override
+    public void delete(Category category) {
+        EntityManager entityManager = DbConnection.getEntityManager();
+        entityManager.getTransaction().begin();
+        entityManager.remove(category);
+        entityManager.getTransaction().commit();
+        entityManager.close();
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        EntityManager entityManager = DbConnection.getEntityManager();
+        entityManager.getTransaction().begin();
+        Optional<Category> category = Optional.ofNullable(entityManager.find(Category.class, id));
+        category.ifPresent(category1 -> entityManager.remove(category1));
+        entityManager.getTransaction().commit();
+        entityManager.close();
     }
 
 }
