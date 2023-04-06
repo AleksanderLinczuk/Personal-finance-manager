@@ -63,4 +63,5 @@ public class ExpenseRepository implements Repository<Expense, Long> {
         entityManager.getTransaction().commit();
         entityManager.close();
     }
+
 }
