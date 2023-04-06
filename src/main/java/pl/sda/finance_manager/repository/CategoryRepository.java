@@ -23,7 +23,7 @@ public class CategoryRepository implements Repository<Category, Long> {
     @Override
     public Set<Category> findAll() {
         EntityManager entityManager = DbConnection.getEntityManager();
-        List<Category> categories = entityManager.createQuery("SELECT FROM Category", Category.class).getResultList();
+        List<Category> categories = entityManager.createQuery("FROM Category", Category.class).getResultList();
         entityManager.close();
         return new HashSet<>(categories);
     }
