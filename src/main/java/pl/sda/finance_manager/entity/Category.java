@@ -19,10 +19,12 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    @Enumerated(EnumType.STRING)
-    private CategoryName categoryName;
+    private String  name;
 
     @OneToMany(mappedBy = "category")
     private Set<Expense> expenses;
+
+    public Category(String name) {
+        this.name = name;
+    }
 }

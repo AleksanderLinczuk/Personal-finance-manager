@@ -24,7 +24,7 @@ public class IncomeRepository implements Repository<Income, Long> {
     @Override
     public Set<Income> findAll() {
         EntityManager entityManager = DbConnection.getEntityManager();
-        List<Income> incomeList = entityManager.createQuery("SELECT FROM Income", Income.class).getResultList();
+        List<Income> incomeList = entityManager.createQuery("FROM Income", Income.class).getResultList();
         entityManager.close();
         return new HashSet<>(incomeList);
     }
