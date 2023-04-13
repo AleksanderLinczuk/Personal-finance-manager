@@ -141,7 +141,7 @@ public class Main {
                     System.out.println("Provide income commentary (optional): ");
                     String commentary = SCANNER.nextLine();
                     incomeService.updateIncome(incomeToUpdate, amount, date, commentary);
-                    incomeRepository.update(incomeToUpdate);
+
                 }
                 case 4 -> {
                     System.out.println("Provide id of income to delete: ");
@@ -164,6 +164,8 @@ public class Main {
     public static void showMenu() {
         System.out.println("CRUD MENU: \n" +
                 "1 - CATEGORY \n" +
+                "2 - INCOME \n" +
+                "3 - EXPENSE \n" +
                 "0 - EXIT \n");
     }
 
@@ -171,7 +173,7 @@ public class Main {
         System.out.println(name + " MENU: \n" +
                 "1 - CREATE " + name + " \n" +
                 "2 - READ " + name + " \n" +
-                "3 - UPDATE " + name + " CATEGORY \n" +
+                "3 - UPDATE " + name + " \n" +
                 "4 - DELETE " + name + " \n" +
                 "0 - EXIT - go back to CRUD menu");
     }

@@ -18,12 +18,13 @@ public class IncomeService {
         if (amount != 0) {
             Income income = new Income();
             income.setAmount(amount);
-            if (date != null) {
+            if ((date != null) && (!date.equals(""))) {
                 income.setDate(LocalDate.parse(date));
             } else {
                 income.setDate(LocalDate.now());
             }
             income.setCommentary(commentary);
+            incomeRepository.create(income);
         } else {
             throw new IllegalArgumentException("Provided data is incorrect");
         }
@@ -32,12 +33,13 @@ public class IncomeService {
     public void updateIncome(Income income, double amount, String date, String commentary) {
         if (amount != 0) {
             income.setAmount(amount);
-            if (date != null) {
+            if ((date != null) && (!date.equals(""))) {
                 income.setDate(LocalDate.parse(date));
             } else {
                 income.setDate(LocalDate.now());
             }
             income.setCommentary(commentary);
+            incomeRepository.update(income);
         } else {
             throw new IllegalArgumentException("Provided data is incorrect");
         }
