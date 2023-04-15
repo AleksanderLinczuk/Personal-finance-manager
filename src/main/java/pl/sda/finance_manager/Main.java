@@ -1,17 +1,21 @@
 package pl.sda.finance_manager;
 
 import pl.sda.finance_manager.entity.Category;
+import pl.sda.finance_manager.entity.Expense;
 import pl.sda.finance_manager.entity.Income;
 import pl.sda.finance_manager.repository.CategoryRepository;
+import pl.sda.finance_manager.repository.ExpenseRepository;
 import pl.sda.finance_manager.repository.IncomeRepository;
 import pl.sda.finance_manager.repository.Repository;
 import pl.sda.finance_manager.service.CategoryService;
+import pl.sda.finance_manager.service.ExpenseService;
 import pl.sda.finance_manager.service.IncomeService;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Main {
@@ -33,8 +37,10 @@ public class Main {
 
             final Repository<Category, Long> categoryRepository = new CategoryRepository();
             final Repository<Income, Long> incomeRepository = new IncomeRepository();
+            final Repository<Expense, Long> expenseRepository = new ExpenseRepository();
             final CategoryService categoryService = new CategoryService(categoryRepository);
             final IncomeService incomeService = new IncomeService(incomeRepository);
+            final ExpenseService expenseService = new ExpenseService(expenseRepository, categoryRepository);
 
             boolean isProgramRunning = true;
             while (isProgramRunning) {
@@ -48,6 +54,9 @@ public class Main {
                     case 2 -> {
                         incomeMenu(incomeService, incomeRepository);
                     }
+                    case 3 -> {
+                        expenseMenu(expenseService, expenseRepository,categoryService);
+                    }
                     case 0 -> {
                         isProgramRunning = false;
                         System.out.println("Goodbye!");
@@ -57,6 +66,68 @@ public class Main {
                     }
                 }
 
+            }
+        }
+    }
+
+    private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
+        boolean isExpenseMenuRunning = true;
+        while (isExpenseMenuRunning) {
+            String name = "EXPENSE";
+            showCrudMenu(name);
+            int chosenOperation = SCANNER.nextInt();
+            SCANNER.nextLine();
+            switch (chosenOperation) {
+                case 1 -> {
+                    System.out.println("Provide expense amount: ");
+                    double amount = SCANNER.nextDouble();
+                    SCANNER.nextLine();
+                    System.out.println("Choose from available category ids: ");
+                    categoryService.readAll();
+                    long categoryId = SCANNER.nextLong();
+                    SCANNER.nextLine();
+                    System.out.println("Provide expense date or leave this field empty to insert current date: ");
+                    String date = SCANNER.nextLine();
+                    System.out.println("Provide expense commentary (optional): ");
+                    String commentary = SCANNER.nextLine();
+                    expenseService.addExpense(amount, categoryId, date, commentary);
+                }
+                case 2 -> {
+                    expenseService.readAll();
+                }
+                case 3 -> {
+                    expenseService.readAll();
+                    System.out.println(" Provide id of expense to update: ");
+                    long selectedExpenseId = SCANNER.nextLong();
+                    SCANNER.nextLine();
+                    Expense expenseToUpdate = expenseService.findById(selectedExpenseId);
+                    System.out.println("Provide expense amount: ");
+                    double amount = SCANNER.nextDouble();
+                    SCANNER.nextLine();
+                    System.out.println("Choose from available category ids: ");
+                    categoryService.readAll();
+                    long categoryId = SCANNER.nextLong();
+                    SCANNER.nextLine();
+                    System.out.println("Provide expense date or leave this field empty to insert current date: ");
+                    String date = SCANNER.nextLine();
+                    System.out.println("Provide expense commentary (optional): ");
+                    String commentary = SCANNER.nextLine();
+                    expenseService.updateExpense(expenseToUpdate, amount, categoryId, date, commentary);
+                }
+                case 4 -> {
+                    System.out.println("Provide id of expense to delete: ");
+                    expenseService.readAll();
+                    long id = SCANNER.nextLong();
+                    SCANNER.nextLine();
+                    expenseService.deleteById(id);
+                }
+                case 0 -> {
+                    isExpenseMenuRunning = false;
+                    System.out.println("Exited " + name + " menu!");
+                }
+                default -> {
+                    System.out.println("Invalid input. Try again");
+                }
             }
         }
     }
