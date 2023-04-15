@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
@@ -33,5 +34,12 @@ public class Expense {
                 ", date=" + date +
                 ", commentary='" + commentary + '\'' +
                 '}';
+    }
+
+    public Expense(double amount, Category category, LocalDate date, String commentary) {
+        this.amount = amount;
+        this.category = category;
+        this.date = date;
+        this.commentary = commentary;
     }
 }
