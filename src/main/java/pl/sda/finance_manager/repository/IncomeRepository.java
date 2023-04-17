@@ -69,8 +69,9 @@ public class IncomeRepository implements Repository<Income, Long> {
 
     public double sumAllIncomesAmount() {
         EntityManager entityManager = DbConnection.getEntityManager();
-        TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Income", double.class);
-        return query.getSingleResult();
+        Double result = entityManager.createQuery("SELECT SUM(amount) FROM Income", double.class).getSingleResult();
+        entityManager.close();
+        return result;
     }
 
     public double sumAllIncomesAmountInTimeRange(LocalDate startDate, LocalDate endDate) {
@@ -78,6 +79,8 @@ public class IncomeRepository implements Repository<Income, Long> {
         TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Income WHERE date BETWEEN :startDate AND :endDate", double.class);
         query.setParameter("startDate", startDate);
         query.setParameter("endDate", endDate);
-        return query.getSingleResult();
+        Double result = query.getSingleResult();
+        entityManager.close();
+        return result;
     }
 }

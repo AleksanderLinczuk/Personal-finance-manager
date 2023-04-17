@@ -13,7 +13,6 @@ import java.util.Optional;
 public class ExpenseRepository implements Repository<Expense, Long> {
 
 
-
     @Override
     public void create(Expense object) {
         EntityManager entityManager = DbConnection.getEntityManager();
@@ -66,32 +65,37 @@ public class ExpenseRepository implements Repository<Expense, Long> {
         entityManager.getTransaction().commit();
         entityManager.close();
     }
-    public List<Expense> findExpensesFilteredByCategory(Category selectedCategory){
+
+    public List<Expense> findExpensesFilteredByCategory(Category selectedCategory) {
         EntityManager entityManager = DbConnection.getEntityManager();
         TypedQuery<Expense> query = entityManager.createQuery("FROM Expense WHERE category.id = :selectedCategory", Expense.class);
-        query.setParameter("selectedCategory", selectedCategory.getId());
-        return query.getResultList();
+        List<Expense> expenses = query.setParameter("selectedCategory", selectedCategory.getId()).getResultList();
+        entityManager.close();
+        return expenses;
     }
-    public double sumAllExpensesAmount(){
+
+    public double sumAllExpensesAmount() {
         EntityManager entityManager = DbConnection.getEntityManager();
-        TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Expense", double.class);
-        return query.getSingleResult();
+        Double result = entityManager.createQuery("SELECT SUM(amount) FROM Expense", double.class).getSingleResult();
+        entityManager.close();
+        return result;
     }
+
     public double sumAllExpensesAmountInTimeRange(LocalDate startDate, LocalDate endDate) {
-        EntityManager entityManager= DbConnection.getEntityManager();
+        EntityManager entityManager = DbConnection.getEntityManager();
         TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Expense WHERE date BETWEEN :startDate AND :endDate", double.class);
         query.setParameter("startDate", startDate);
         query.setParameter("endDate", endDate);
-        return query.getSingleResult();
+        Double result = query.getSingleResult();
+        entityManager.close();
+        return result;
     }
-    public List<Object[]> findSumOfExpensesGroupedByCategory(){
-     EntityManager entityManager = DbConnection.getEntityManager();
-        TypedQuery<Object[]> query = entityManager.createQuery("SELECT SUM(amount), category.name FROM Expense GROUP BY category.name", Object[].class);
-        return query.getResultList();
-    }
-    public List<Object[]> findNumberOfExpensesGroupedByCategory(){
+
+    public List<Object[]> findSumOfExpensesGroupedByCategory() {
         EntityManager entityManager = DbConnection.getEntityManager();
-        TypedQuery<Object[]> query = entityManager.createQuery("SELECT COUNT(*), category.name FROM Expense GROUP BY category.name", Object[].class);
-        return query.getResultList();
+        List<Object[]> result = entityManager.createQuery("SELECT SUM(amount),COUNT(*), category.name FROM Expense GROUP BY category.name", Object[].class).getResultList();
+        entityManager.close();
+        return result;
     }
+
 }

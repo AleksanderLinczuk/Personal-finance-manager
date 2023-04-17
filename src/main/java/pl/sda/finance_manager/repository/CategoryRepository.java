@@ -63,5 +63,4 @@ public class CategoryRepository implements Repository<Category, Long> {
         entityManager.getTransaction().commit();
         entityManager.close();
     }
-
 }
