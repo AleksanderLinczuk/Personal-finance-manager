@@ -4,6 +4,7 @@ import com.mysql.cj.util.StringUtils;
 import pl.sda.finance_manager.entity.Category;
 import pl.sda.finance_manager.entity.Expense;
 import pl.sda.finance_manager.entity.Income;
+import pl.sda.finance_manager.repository.ExpenseRepository;
 import pl.sda.finance_manager.repository.Repository;
 
 import java.time.LocalDate;
@@ -69,4 +70,26 @@ public class ExpenseService {
             throw new IllegalArgumentException("Provided data is incorrect! ");
         }
     }
+    public void readExpensesFilteredByCategory(Category selectedCategory){
+        if (selectedCategory != null){
+            List<Expense> expensesGroupedByCategory = ((ExpenseRepository) expenseRepository).findExpensesFilteredByCategory(selectedCategory);
+            for (Expense e : expensesGroupedByCategory){
+                System.out.println(e);
+            }
+        }else{
+            throw new IllegalArgumentException("Invalid category id. Try again.");
+        }
+    }
+    public void readExpensesFilteredByCategory(Long selectedId, CategoryService categoryService){
+        Category selectedCategory = categoryService.findById(selectedId);
+        if (selectedCategory != null){
+            List<Expense> expensesGroupedByCategory = ((ExpenseRepository) expenseRepository).findExpensesFilteredByCategory(selectedCategory);
+            for (Expense e : expensesGroupedByCategory){
+                System.out.println(e);
+            }
+        }else{
+            throw new IllegalArgumentException("Invalid category id. Try again.");
+        }
+    }
+
 }
