@@ -5,13 +5,10 @@ import jakarta.persistence.TypedQuery;
 import pl.sda.finance_manager.DbConnection;
 import pl.sda.finance_manager.entity.Category;
 import pl.sda.finance_manager.entity.Expense;
-import pl.sda.finance_manager.entity.Income;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public class ExpenseRepository implements Repository<Expense, Long> {
 
@@ -86,7 +83,15 @@ public class ExpenseRepository implements Repository<Expense, Long> {
         query.setParameter("startDate", startDate);
         query.setParameter("endDate", endDate);
         return query.getSingleResult();
-
     }
-
+    public List<Object[]> findSumOfExpensesGroupedByCategory(){
+     EntityManager entityManager = DbConnection.getEntityManager();
+        TypedQuery<Object[]> query = entityManager.createQuery("SELECT SUM(amount), category.name FROM Expense GROUP BY category.name", Object[].class);
+        return query.getResultList();
+    }
+    public List<Object[]> findNumberOfExpensesGroupedByCategory(){
+        EntityManager entityManager = DbConnection.getEntityManager();
+        TypedQuery<Object[]> query = entityManager.createQuery("SELECT COUNT(*), category.name FROM Expense GROUP BY category.name", Object[].class);
+        return query.getResultList();
+    }
 }
