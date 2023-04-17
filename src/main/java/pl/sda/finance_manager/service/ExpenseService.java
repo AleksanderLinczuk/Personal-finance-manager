@@ -91,5 +91,19 @@ public class ExpenseService {
             throw new IllegalArgumentException("Invalid category id. Try again.");
         }
     }
-
+    public double sumAllExpensesAmountInTimeRange(String startDate, String endDate){
+        if (!StringUtils.isNullOrEmpty(startDate)){
+            LocalDate startDateParse = LocalDate.parse(startDate);
+            LocalDate endDateParse;
+            if (StringUtils.isNullOrEmpty(endDate)){
+                endDateParse = LocalDate.now();
+            }else{
+                endDateParse = LocalDate.parse(endDate);
+            }
+            double result = ((ExpenseRepository) expenseRepository).sumAllExpensesAmountInTimeRange(startDateParse, endDateParse);
+            return result;
+        } else{
+            throw new IllegalArgumentException("Invalid data provided! ");
+        }
+    }
 }

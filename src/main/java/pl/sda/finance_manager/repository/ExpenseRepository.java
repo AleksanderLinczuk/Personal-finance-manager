@@ -7,6 +7,7 @@ import pl.sda.finance_manager.entity.Category;
 import pl.sda.finance_manager.entity.Expense;
 import pl.sda.finance_manager.entity.Income;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -14,12 +15,7 @@ import java.util.Set;
 
 public class ExpenseRepository implements Repository<Expense, Long> {
 
-    public List<Expense> findExpensesFilteredByCategory(Category selectedCategory){
-        EntityManager entityManager = DbConnection.getEntityManager();
-        TypedQuery<Expense> query = entityManager.createQuery("FROM Expense WHERE category.id = :selectedCategory", Expense.class);
-        query.setParameter("selectedCategory", selectedCategory.getId());
-        return query.getResultList();
-    }
+
 
     @Override
     public void create(Expense object) {
@@ -72,6 +68,25 @@ public class ExpenseRepository implements Repository<Expense, Long> {
         expense.ifPresent(e -> entityManager.remove(e));
         entityManager.getTransaction().commit();
         entityManager.close();
+    }
+    public List<Expense> findExpensesFilteredByCategory(Category selectedCategory){
+        EntityManager entityManager = DbConnection.getEntityManager();
+        TypedQuery<Expense> query = entityManager.createQuery("FROM Expense WHERE category.id = :selectedCategory", Expense.class);
+        query.setParameter("selectedCategory", selectedCategory.getId());
+        return query.getResultList();
+    }
+    public double sumAllExpensesAmount(){
+        EntityManager entityManager = DbConnection.getEntityManager();
+        TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Expense", double.class);
+        return query.getSingleResult();
+    }
+    public double sumAllExpensesAmountInTimeRange(LocalDate startDate, LocalDate endDate) {
+        EntityManager entityManager= DbConnection.getEntityManager();
+        TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Expense WHERE date BETWEEN :startDate AND :endDate", double.class);
+        query.setParameter("startDate", startDate);
+        query.setParameter("endDate", endDate);
+        return query.getSingleResult();
+
     }
 
 }

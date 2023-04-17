@@ -88,6 +88,21 @@ public class Main {
                         SCANNER.nextLine();
                         expenseService.readExpensesFilteredByCategory(selectedId, categoryService);
                     }
+                    case 7 -> {
+                        double sumAllIncomesAmount = ((IncomeRepository) incomeRepository).sumAllIncomesAmount();
+                        double sumAllExpensesAmount = ((ExpenseRepository) expenseRepository).sumAllExpensesAmount();
+                        System.out.println("Your total balance (all incomes - all expenses) is : " + (sumAllIncomesAmount-sumAllExpensesAmount) + "\n");
+                    }
+                    case 8 -> {
+                        System.out.println("Provide start date of balance (incomes - expenses) to display: [YYYY-MM-DD]");
+                        String startDate = SCANNER.nextLine();
+                        System.out.println("Provide end date of balance (incomes - expenses) to display: [YYYY-MM-DD]. Or leave this field empty to select current date. ");
+                        String endDate = SCANNER.nextLine();
+                        double incomesAmountInTimeRange = incomeService.sumAllIncomesAmountInTimeRange(startDate, endDate);
+                        double expensesAmountInTimeRange = expenseService.sumAllExpensesAmountInTimeRange(startDate, endDate);
+                        System.out.println(" Your total balance in time range from " + startDate + " to " +endDate + " is : "+ (incomesAmountInTimeRange-expensesAmountInTimeRange)+ "\n");
+                    }
+
                     case 0 -> {
                         isProgramRunning = false;
                         System.out.println("Goodbye!");
@@ -96,7 +111,6 @@ public class Main {
                         System.out.println("Invalid input. Try again");
                     }
                 }
-
             }
         }
     }
@@ -271,6 +285,8 @@ public class Main {
                 + "4 - DISPLAY ALL EXPENSES AND INCOMES \n"
                 + "5 - DISPLAY EXPENSES FROM SPECIFIC DATES \n"
                 + "6 - DISPLAY EXPENSES FILTERED BY CATEGORY \n"
+                + "7 - DISPLAY TOTAL BALANCE (ALL INCOMES - ALL EXPENSES) \n"
+                + "8 - DISPLAY TOTAL BALANCE (ALL INCOMES - ALL EXPENSES) WITHIN SPECIFIC TIME RANGE \n"
                 + "0 - EXIT \n");
     }
 
