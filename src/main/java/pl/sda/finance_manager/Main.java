@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -101,6 +102,17 @@ public class Main {
                         double incomesAmountInTimeRange = incomeService.sumAllIncomesAmountInTimeRange(startDate, endDate);
                         double expensesAmountInTimeRange = expenseService.sumAllExpensesAmountInTimeRange(startDate, endDate);
                         System.out.println(" Your total balance in time range from " + startDate + " to " +endDate + " is : "+ (incomesAmountInTimeRange-expensesAmountInTimeRange)+ "\n");
+                    }
+                    case 9 -> {
+                        System.out.println("Sum of all expenses grouped by categories:");
+                        List<Object[]> results = ((ExpenseRepository) expenseRepository).findSumOfExpensesGroupedByCategory();
+                        results.stream().map(r -> "Sum of all expenses: " + r[0] + ", in category:  "+ r[1]).collect(Collectors.toList()).forEach(System.out::println);
+                    }
+                    case 10 -> {
+                        System.out.println("Number of all expenses grouped by categories:");
+                        List<Object[]> results = ((ExpenseRepository) expenseRepository).findNumberOfExpensesGroupedByCategory();
+                        results.stream().map(r -> "Number of all expenses: " + r[0] + ", in category:  " + r[1]).toList().forEach(System.out::println);
+
                     }
 
                     case 0 -> {
@@ -287,6 +299,8 @@ public class Main {
                 + "6 - DISPLAY EXPENSES FILTERED BY CATEGORY \n"
                 + "7 - DISPLAY TOTAL BALANCE (ALL INCOMES - ALL EXPENSES) \n"
                 + "8 - DISPLAY TOTAL BALANCE (ALL INCOMES - ALL EXPENSES) WITHIN SPECIFIC TIME RANGE \n"
+                + "9 - DISPLAY SUM OF ALL EXPENSES GROUPED BY CATEGORY \n"
+                + "10 - DISPLAY NUMBER OF ALL EXPENSES GROUPED BY CATEGORY \n"
                 + "0 - EXIT \n");
     }
 
