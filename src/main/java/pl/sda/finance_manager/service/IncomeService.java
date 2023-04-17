@@ -1,6 +1,8 @@
 package pl.sda.finance_manager.service;
 
+import com.mysql.cj.util.StringUtils;
 import pl.sda.finance_manager.entity.Income;
+import pl.sda.finance_manager.repository.IncomeRepository;
 import pl.sda.finance_manager.repository.Repository;
 
 import java.time.LocalDate;
@@ -65,6 +67,21 @@ public class IncomeService {
             incomeRepository.deleteById(id);
         } else {
             throw new IllegalArgumentException("Provided data is incorrect! ");
+        }
+    }
+    public double sumAllIncomesAmountInTimeRange(String startDate, String endDate){
+        if (!StringUtils.isNullOrEmpty(startDate)){
+            LocalDate startDateParse = LocalDate.parse(startDate);
+            LocalDate endDateParse;
+            if (StringUtils.isNullOrEmpty(endDate)){
+                endDateParse = LocalDate.now();
+            }else{
+                endDateParse = LocalDate.parse(endDate);
+            }
+            double result = ((IncomeRepository) incomeRepository).sumAllIncomesAmountInTimeRange(startDateParse, endDateParse);
+            return result;
+        }else{
+            throw  new IllegalArgumentException("Invalid data provided! ");
         }
     }
 }
