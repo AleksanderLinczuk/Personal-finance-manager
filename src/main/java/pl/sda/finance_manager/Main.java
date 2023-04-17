@@ -1,5 +1,6 @@
 package pl.sda.finance_manager;
 
+import com.mysql.cj.util.StringUtils;
 import pl.sda.finance_manager.entity.Category;
 import pl.sda.finance_manager.entity.Expense;
 import pl.sda.finance_manager.entity.Income;
@@ -16,7 +17,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
 public class Main {
 
@@ -28,8 +31,7 @@ public class Main {
 
 
     public static void main(String[] args) throws IOException, SQLException {
-        try (final Connection connection = DriverManager.getConnection(JDBC_URL + System.getenv(DB_NAME),
-                System.getenv(DB_USER), System.getenv(DB_PASSWORD));) {
+        try (final Connection connection = DriverManager.getConnection(JDBC_URL + System.getenv(DB_NAME), System.getenv(DB_USER), System.getenv(DB_PASSWORD));) {
             System.out.println("Connected to DB!");
 
             DbInit dbInit = new DbInit(connection);
@@ -55,7 +57,29 @@ public class Main {
                         incomeMenu(incomeService, incomeRepository);
                     }
                     case 3 -> {
-                        expenseMenu(expenseService, expenseRepository,categoryService);
+                        expenseMenu(expenseService, expenseRepository, categoryService);
+                    }
+                    case 4 -> {
+                        System.out.println("List of all incomes: ");
+                        incomeService.readAll();
+                        System.out.println("List of all expenses: ");
+                        expenseService.readAll();
+                    }
+                    case 5 -> {
+                        System.out.println("Provide start date of expenses to display: [YYYY-MM-DD]");
+                        LocalDate startDate = LocalDate.parse(SCANNER.nextLine());
+                        System.out.println("Provide end date of expenses to display: [YYYY-MM-DD]. Or leave this field empty to choose current date.");
+                        String endDateAsString = SCANNER.nextLine();
+                        LocalDate endDate;
+                        if (StringUtils.isNullOrEmpty(endDateAsString)){
+                            endDate = LocalDate.now();
+                        }else{
+                            endDate = LocalDate.parse(endDateAsString);
+                        }
+                        List<Expense> expenses = expenseRepository.findAll();
+                        expenses.stream().filter(expense -> expense.getDate().isAfter(startDate.minusDays(1))
+                                && expense.getDate().isBefore(endDate.plusDays(1)))
+                                .forEach(System.out::println);
                     }
                     case 0 -> {
                         isProgramRunning = false;
@@ -69,7 +93,6 @@ public class Main {
             }
         }
     }
-
     private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
         boolean isExpenseMenuRunning = true;
         while (isExpenseMenuRunning) {
@@ -189,7 +212,7 @@ public class Main {
                     System.out.println("Provide income amount: ");
                     double amount = SCANNER.nextDouble();
                     SCANNER.nextLine();
-                    System.out.println("Provide income date or leave this field empty to insert current date: ");
+                    System.out.println("Provide income date [YYYY-MM-DD] or leave this field empty to insert current date: ");
                     String date = SCANNER.nextLine();
                     System.out.println("Provide income commentary (optional): ");
                     String commentary = SCANNER.nextLine();
@@ -207,7 +230,7 @@ public class Main {
                     System.out.println("Provide income amount: ");
                     double amount = SCANNER.nextDouble();
                     SCANNER.nextLine();
-                    System.out.println("Provide income date or leave this field empty to insert current date: ");
+                    System.out.println("Provide income date [YYYY-MM-DD] or leave this field empty to insert current date: ");
                     String date = SCANNER.nextLine();
                     System.out.println("Provide income commentary (optional): ");
                     String commentary = SCANNER.nextLine();
@@ -233,20 +256,11 @@ public class Main {
     }
 
     public static void showMenu() {
-        System.out.println("CRUD MENU: \n" +
-                "1 - CATEGORY \n" +
-                "2 - INCOME \n" +
-                "3 - EXPENSE \n" +
-                "0 - EXIT \n");
+        System.out.println("CRUD MENU: \n" + "1 - CATEGORY \n" + "2 - INCOME \n" + "3 - EXPENSE \n" + "4 - DISPLAY ALL EXPENSES AND INCOMES \n" + "5 - DISPLAY EXPENSES FROM SPECIFIC DATES \n" + "0 - EXIT \n");
     }
 
     public static void showCrudMenu(String name) {
-        System.out.println(name + " MENU: \n" +
-                "1 - CREATE " + name + " \n" +
-                "2 - READ " + name + " \n" +
-                "3 - UPDATE " + name + " \n" +
-                "4 - DELETE " + name + " \n" +
-                "0 - EXIT - go back to CRUD menu");
+        System.out.println(name + " MENU: \n" + "1 - CREATE " + name + " \n" + "2 - READ " + name + " \n" + "3 - UPDATE " + name + " \n" + "4 - DELETE " + name + " \n" + "0 - EXIT - go back to CRUD menu");
     }
 
 }

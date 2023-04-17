@@ -22,11 +22,11 @@ public class IncomeRepository implements Repository<Income, Long> {
     }
 
     @Override
-    public Set<Income> findAll() {
+    public List<Income> findAll() {
         EntityManager entityManager = DbConnection.getEntityManager();
         List<Income> incomeList = entityManager.createQuery("FROM Income", Income.class).getResultList();
         entityManager.close();
-        return new HashSet<>(incomeList);
+        return incomeList;
     }
 
     @Override

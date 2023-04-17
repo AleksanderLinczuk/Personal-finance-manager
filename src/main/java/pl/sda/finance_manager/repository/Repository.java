@@ -1,12 +1,13 @@
 package pl.sda.finance_manager.repository;
 
+import java.util.List;
 import java.util.Set;
 
 public interface Repository<T, IdType> {
 
     void create(T object);
 
-    Set<T> findAll();
+    List<T> findAll();
 
     T findById(IdType id);
 

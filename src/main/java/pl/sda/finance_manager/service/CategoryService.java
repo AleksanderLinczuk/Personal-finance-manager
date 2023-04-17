@@ -6,9 +6,6 @@ import pl.sda.finance_manager.entity.Category;
 import pl.sda.finance_manager.repository.Repository;
 
 import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class CategoryService {
 
@@ -28,7 +25,7 @@ public class CategoryService {
         }
     }
     public List<SimpleCategoryDto> findAll(){
-        Set<Category> categories = categoryRepository.findAll();
+        List<Category> categories = categoryRepository.findAll();
         return categories.stream().map(category -> new SimpleCategoryDto(category.getId(), category.getName())).toList();
     }
     public void readAll(){

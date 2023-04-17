@@ -7,6 +7,7 @@ import pl.sda.finance_manager.entity.Income;
 import pl.sda.finance_manager.repository.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 public class ExpenseService {
@@ -49,7 +50,7 @@ public class ExpenseService {
     }
 
     public void readAll() {
-        Set<Expense> expenses = expenseRepository.findAll();
+        List<Expense> expenses = expenseRepository.findAll();
         expenses.forEach(each -> System.out.println(each));
     }
 

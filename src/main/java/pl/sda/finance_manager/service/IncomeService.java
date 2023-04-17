@@ -4,6 +4,7 @@ import pl.sda.finance_manager.entity.Income;
 import pl.sda.finance_manager.repository.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 public class IncomeService {
@@ -47,7 +48,7 @@ public class IncomeService {
     }
 
     public void readAll() {
-        Set<Income> incomes = incomeRepository.findAll();
+        List<Income> incomes = incomeRepository.findAll();
         incomes.forEach(each -> System.out.println(each));
     }
 

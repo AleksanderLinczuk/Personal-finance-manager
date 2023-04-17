@@ -21,11 +21,11 @@ public class ExpenseRepository implements Repository<Expense, Long> {
     }
 
     @Override
-    public Set<Expense> findAll() {
+    public List<Expense> findAll() {
         EntityManager entityManager = DbConnection.getEntityManager();
         List<Expense> incomeList = entityManager.createQuery("FROM Expense", Expense.class).getResultList();
         entityManager.close();
-        return new HashSet<>(incomeList);
+        return incomeList;
     }
 
     @Override
