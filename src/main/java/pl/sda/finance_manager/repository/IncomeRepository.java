@@ -65,4 +65,9 @@ public class IncomeRepository implements Repository<Income, Long> {
         entityManager.getTransaction().commit();
         entityManager.close();
     }
+    public double sumAllIncomesAmount() {
+    EntityManager entityManager = DbConnection.getEntityManager();
+        TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Income", double.class);
+        return query.getSingleResult();
+    }
 }
