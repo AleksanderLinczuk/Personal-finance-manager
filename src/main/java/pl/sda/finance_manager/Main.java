@@ -71,15 +71,22 @@ public class Main {
                         System.out.println("Provide end date of expenses to display: [YYYY-MM-DD]. Or leave this field empty to choose current date.");
                         String endDateAsString = SCANNER.nextLine();
                         LocalDate endDate;
-                        if (StringUtils.isNullOrEmpty(endDateAsString)){
+                        if (StringUtils.isNullOrEmpty(endDateAsString)) {
                             endDate = LocalDate.now();
-                        }else{
+                        } else {
                             endDate = LocalDate.parse(endDateAsString);
                         }
                         List<Expense> expenses = expenseRepository.findAll();
                         expenses.stream().filter(expense -> expense.getDate().isAfter(startDate.minusDays(1))
-                                && expense.getDate().isBefore(endDate.plusDays(1)))
+                                        && expense.getDate().isBefore(endDate.plusDays(1)))
                                 .forEach(System.out::println);
+                    }
+                    case 6 -> {
+                        System.out.println("Select id of category to filter expenses by: ");
+                        categoryService.readAll();
+                        Long selectedId = SCANNER.nextLong();
+                        SCANNER.nextLine();
+                        expenseService.readExpensesFilteredByCategory(selectedId, categoryService);
                     }
                     case 0 -> {
                         isProgramRunning = false;
@@ -93,6 +100,7 @@ public class Main {
             }
         }
     }
+
     private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
         boolean isExpenseMenuRunning = true;
         while (isExpenseMenuRunning) {
@@ -256,11 +264,23 @@ public class Main {
     }
 
     public static void showMenu() {
-        System.out.println("CRUD MENU: \n" + "1 - CATEGORY \n" + "2 - INCOME \n" + "3 - EXPENSE \n" + "4 - DISPLAY ALL EXPENSES AND INCOMES \n" + "5 - DISPLAY EXPENSES FROM SPECIFIC DATES \n" + "0 - EXIT \n");
+        System.out.println("CRUD MENU: \n"
+                + "1 - CATEGORY \n"
+                + "2 - INCOME \n"
+                + "3 - EXPENSE \n"
+                + "4 - DISPLAY ALL EXPENSES AND INCOMES \n"
+                + "5 - DISPLAY EXPENSES FROM SPECIFIC DATES \n"
+                + "6 - DISPLAY EXPENSES FILTERED BY CATEGORY \n"
+                + "0 - EXIT \n");
     }
 
     public static void showCrudMenu(String name) {
-        System.out.println(name + " MENU: \n" + "1 - CREATE " + name + " \n" + "2 - READ " + name + " \n" + "3 - UPDATE " + name + " \n" + "4 - DELETE " + name + " \n" + "0 - EXIT - go back to CRUD menu");
+        System.out.println(name + " MENU: \n"
+                + "1 - CREATE " + name + " \n"
+                + "2 - READ " + name + " \n"
+                + "3 - UPDATE " + name + " \n"
+                + "4 - DELETE " + name + " \n"
+                + "0 - EXIT - go back to CRUD menu");
     }
 
 }

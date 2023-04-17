@@ -1,7 +1,9 @@
 package pl.sda.finance_manager.repository;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import pl.sda.finance_manager.DbConnection;
+import pl.sda.finance_manager.entity.Category;
 import pl.sda.finance_manager.entity.Expense;
 import pl.sda.finance_manager.entity.Income;
 
@@ -11,6 +13,14 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ExpenseRepository implements Repository<Expense, Long> {
+
+    public List<Expense> findExpensesFilteredByCategory(Category selectedCategory){
+        EntityManager entityManager = DbConnection.getEntityManager();
+        TypedQuery<Expense> query = entityManager.createQuery("FROM Expense WHERE category.id = :selectedCategory", Expense.class);
+        query.setParameter("selectedCategory", selectedCategory.getId());
+        return query.getResultList();
+    }
+
     @Override
     public void create(Expense object) {
         EntityManager entityManager = DbConnection.getEntityManager();
