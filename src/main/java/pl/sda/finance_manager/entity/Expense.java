@@ -31,6 +31,7 @@ public class Expense {
                 "id=" + id +
                 ", amount=" + amount +
                 ", category id=" + category.getId() +
+                ", category name=" + category.getName() +
                 ", date=" + date +
                 ", commentary='" + commentary + '\'' +
                 '}';

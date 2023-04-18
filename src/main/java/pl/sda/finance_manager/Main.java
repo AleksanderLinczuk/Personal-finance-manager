@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -67,20 +66,9 @@ public class Main {
                         expenseService.readAll();
                     }
                     case 5 -> {
-                        System.out.println("Provide start date of expenses to display: [YYYY-MM-DD]");
-                        LocalDate startDate = LocalDate.parse(SCANNER.nextLine());
-                        System.out.println("Provide end date of expenses to display: [YYYY-MM-DD]. Or leave this field empty to choose current date.");
-                        String endDateAsString = SCANNER.nextLine();
-                        LocalDate endDate;
-                        if (StringUtils.isNullOrEmpty(endDateAsString)) {
-                            endDate = LocalDate.now();
-                        } else {
-                            endDate = LocalDate.parse(endDateAsString);
-                        }
-                        List<Expense> expenses = expenseRepository.findAll();
-                        expenses.stream().filter(expense -> expense.getDate().isAfter(startDate.minusDays(1))
-                                        && expense.getDate().isBefore(endDate.plusDays(1)))
-                                .forEach(System.out::println);
+                        LocalDate startDate = getStartDateFromUserInput();
+                        LocalDate endDate = getEndDateFromUserInput();
+                        readExpensesWithinTimeRange(expenseRepository, startDate, endDate);
                     }
                     case 6 -> {
                         System.out.println("Select id of category to filter expenses by: ");
@@ -92,21 +80,17 @@ public class Main {
                     case 7 -> {
                         double sumAllIncomesAmount = ((IncomeRepository) incomeRepository).sumAllIncomesAmount();
                         double sumAllExpensesAmount = ((ExpenseRepository) expenseRepository).sumAllExpensesAmount();
-                        System.out.println("Your total balance (all incomes - all expenses) is : " + (sumAllIncomesAmount-sumAllExpensesAmount) + "\n");
+                        System.out.println("Your total balance (all incomes - all expenses) is : " + (sumAllIncomesAmount - sumAllExpensesAmount) + "\n");
                     }
                     case 8 -> {
-                        System.out.println("Provide start date of balance (incomes - expenses) to display: [YYYY-MM-DD]");
-                        String startDate = SCANNER.nextLine();
-                        System.out.println("Provide end date of balance (incomes - expenses) to display: [YYYY-MM-DD]. Or leave this field empty to select current date. ");
-                        String endDate = SCANNER.nextLine();
+                        String startDate = getStartDateBalance();
+                        String endDate = getEndDateBalance();
                         double incomesAmountInTimeRange = incomeService.sumAllIncomesAmountInTimeRange(startDate, endDate);
                         double expensesAmountInTimeRange = expenseService.sumAllExpensesAmountInTimeRange(startDate, endDate);
-                        System.out.println(" Your total balance in time range from " + startDate + " to " +endDate + " is : "+ (incomesAmountInTimeRange-expensesAmountInTimeRange)+ "\n");
+                        System.out.println(" Your total balance in time range from " + startDate + " to " + endDate + " is : " + (incomesAmountInTimeRange - expensesAmountInTimeRange) + "\n");
                     }
                     case 9 -> {
-                        System.out.println("Sum of all expenses grouped by categories:");
-                        List<Object[]> results = ((ExpenseRepository) expenseRepository).findSumOfExpensesGroupedByCategory();
-                        results.stream().map(r -> "Sum of all expenses: " + r[0] + " from "+ r[1]+" transactions, in category:  "+ r[2]).collect(Collectors.toList()).forEach(System.out::println);
+                        readExpensesGroupedByCategory((ExpenseRepository) expenseRepository);
                     }
                     case 0 -> {
                         isProgramRunning = false;
@@ -115,68 +99,6 @@ public class Main {
                     default -> {
                         System.out.println("Invalid input. Try again");
                     }
-                }
-            }
-        }
-    }
-
-    private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
-        boolean isExpenseMenuRunning = true;
-        while (isExpenseMenuRunning) {
-            String name = "EXPENSE";
-            showCrudMenu(name);
-            int chosenOperation = SCANNER.nextInt();
-            SCANNER.nextLine();
-            switch (chosenOperation) {
-                case 1 -> {
-                    System.out.println("Provide expense amount: ");
-                    double amount = SCANNER.nextDouble();
-                    SCANNER.nextLine();
-                    System.out.println("Choose from available category ids: ");
-                    categoryService.readAll();
-                    long categoryId = SCANNER.nextLong();
-                    SCANNER.nextLine();
-                    System.out.println("Provide expense date or leave this field empty to insert current date: ");
-                    String date = SCANNER.nextLine();
-                    System.out.println("Provide expense commentary (optional): ");
-                    String commentary = SCANNER.nextLine();
-                    expenseService.addExpense(amount, categoryId, date, commentary);
-                }
-                case 2 -> {
-                    expenseService.readAll();
-                }
-                case 3 -> {
-                    expenseService.readAll();
-                    System.out.println(" Provide id of expense to update: ");
-                    long selectedExpenseId = SCANNER.nextLong();
-                    SCANNER.nextLine();
-                    Expense expenseToUpdate = expenseService.findById(selectedExpenseId);
-                    System.out.println("Provide expense amount: ");
-                    double amount = SCANNER.nextDouble();
-                    SCANNER.nextLine();
-                    System.out.println("Choose from available category ids: ");
-                    categoryService.readAll();
-                    long categoryId = SCANNER.nextLong();
-                    SCANNER.nextLine();
-                    System.out.println("Provide expense date or leave this field empty to insert current date: ");
-                    String date = SCANNER.nextLine();
-                    System.out.println("Provide expense commentary (optional): ");
-                    String commentary = SCANNER.nextLine();
-                    expenseService.updateExpense(expenseToUpdate, amount, categoryId, date, commentary);
-                }
-                case 4 -> {
-                    System.out.println("Provide id of expense to delete: ");
-                    expenseService.readAll();
-                    long id = SCANNER.nextLong();
-                    SCANNER.nextLine();
-                    expenseService.deleteById(id);
-                }
-                case 0 -> {
-                    isExpenseMenuRunning = false;
-                    System.out.println("Exited " + name + " menu!");
-                }
-                default -> {
-                    System.out.println("Invalid input. Try again");
                 }
             }
         }
@@ -191,8 +113,7 @@ public class Main {
             SCANNER.nextLine();
             switch (chosenOperation) {
                 case 1 -> {
-                    System.out.println("Provide new category name: ");
-                    String categoryName = SCANNER.nextLine();
+                    String categoryName = getCategoryNameFromUserInput();
                     categoryService.addCategory(categoryName);
                 }
                 case 2 -> {
@@ -200,20 +121,15 @@ public class Main {
                 }
                 case 3 -> {
                     categoryService.readAll();
-                    System.out.println("Provide id of category to update: ");
-                    Long id = SCANNER.nextLong();
-                    SCANNER.nextLine();
+                    Long id = getCategoryIdFromUserInput();
                     Category categoryToUpdate = categoryService.findById(id);
-                    System.out.println("Provide new category name: ");
-                    String updatedName = SCANNER.nextLine();
+                    String updatedName = getCategoryNameFromUserInput();
                     categoryToUpdate.setName(updatedName);
                     categoryRepository.update(categoryToUpdate);
                 }
                 case 4 -> {
                     categoryService.readAll();
-                    System.out.println("Provide id of category to delete: ");
-                    Long id = SCANNER.nextLong();
-                    SCANNER.nextLine();
+                    Long id = getCategoryIdFromUserInput();
                     categoryService.deleteById(id);
                 }
                 case 0 -> {
@@ -236,13 +152,9 @@ public class Main {
             SCANNER.nextLine();
             switch (chosenOperation) {
                 case 1 -> {
-                    System.out.println("Provide income amount: ");
-                    double amount = SCANNER.nextDouble();
-                    SCANNER.nextLine();
-                    System.out.println("Provide income date [YYYY-MM-DD] or leave this field empty to insert current date: ");
-                    String date = SCANNER.nextLine();
-                    System.out.println("Provide income commentary (optional): ");
-                    String commentary = SCANNER.nextLine();
+                    double amount = getIncomeFromUserInput();
+                    String date = getIncomeDateAsStringFromUserInput();
+                    String commentary = getCommentaryFromUserInput();
                     incomeService.addIncome(amount, date, commentary);
                 }
                 case 2 -> {
@@ -250,24 +162,17 @@ public class Main {
                 }
                 case 3 -> {
                     incomeService.readAll();
-                    System.out.println("Provide id of income to update: ");
-                    Long id = SCANNER.nextLong();
-                    SCANNER.nextLine();
+                    Long id = getincomeIdFromUserInput();
                     Income incomeToUpdate = incomeService.findById(id);
-                    System.out.println("Provide income amount: ");
-                    double amount = SCANNER.nextDouble();
-                    SCANNER.nextLine();
-                    System.out.println("Provide income date [YYYY-MM-DD] or leave this field empty to insert current date: ");
-                    String date = SCANNER.nextLine();
-                    System.out.println("Provide income commentary (optional): ");
-                    String commentary = SCANNER.nextLine();
+                    double amount = getIncomeFromUserInput();
+                    String date = getIncomeDateAsStringFromUserInput();
+                    String commentary = getCommentaryFromUserInput();
                     incomeService.updateIncome(incomeToUpdate, amount, date, commentary);
 
                 }
                 case 4 -> {
-                    System.out.println("Provide id of income to delete: ");
-                    Long id = SCANNER.nextLong();
-                    SCANNER.nextLine();
+                    incomeService.readAll();
+                    Long id = getincomeIdFromUserInput();
                     incomeService.deleteById(id);
                 }
                 case 0 -> {
@@ -278,15 +183,60 @@ public class Main {
                     System.out.println("Invalid input. Try again");
                 }
             }
+        }
+    }
 
+    private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
+        boolean isExpenseMenuRunning = true;
+        while (isExpenseMenuRunning) {
+            String name = "EXPENSE";
+            showCrudMenu(name);
+            int chosenOperation = SCANNER.nextInt();
+            SCANNER.nextLine();
+            switch (chosenOperation) {
+                case 1 -> {
+                    double amount = getExpenseFromUserInput();
+                    long categoryId = getCategoryIdFromUserInput(categoryService);
+                    String date = getDateAsStringFromUserInput();
+                    String commentary = getCommentaryFromUserInput();
+                    expenseService.addExpense(amount, categoryId, date, commentary);
+                }
+                case 2 -> {
+                    expenseService.readAll();
+                }
+                case 3 -> {
+                    expenseService.readAll();
+                    long selectedExpenseId = getExpenseIdFromUserInput();
+                    Expense expenseToUpdate = expenseService.findById(selectedExpenseId);
+                    double amount = getExpenseFromUserInput();
+                    long categoryId = getCategoryIdFromUserInput(categoryService);
+                    String date = getDateAsStringFromUserInput();
+                    String commentary = getCommentaryFromUserInput();
+                    expenseService.updateExpense(expenseToUpdate, amount, categoryId, date, commentary);
+                }
+                case 4 -> {
+                    System.out.println("Provide id of expense to delete: ");
+                    expenseService.readAll();
+                    long id = SCANNER.nextLong();
+                    SCANNER.nextLine();
+                    expenseService.deleteById(id);
+                }
+                case 0 -> {
+                    isExpenseMenuRunning = false;
+                    System.out.println("Exited " + name + " menu!");
+                }
+                default -> {
+                    System.out.println("Invalid input. Try again");
+                }
+            }
         }
     }
 
     public static void showMenu() {
         System.out.println("CRUD MENU: \n"
-                + "1 - CATEGORY \n"
-                + "2 - INCOME \n"
-                + "3 - EXPENSE \n"
+                + "1 - CATEGORY CRUD \n"
+                + "2 - INCOME CRUD \n"
+                + "3 - EXPENSE CRUD\n"
                 + "4 - DISPLAY ALL EXPENSES AND INCOMES \n"
                 + "5 - DISPLAY EXPENSES FROM SPECIFIC DATES \n"
                 + "6 - DISPLAY EXPENSES FILTERED BY CATEGORY \n"
@@ -305,5 +255,114 @@ public class Main {
                 + "0 - EXIT - go back to CRUD menu");
     }
 
+    private static void readExpensesGroupedByCategory(ExpenseRepository expenseRepository) {
+        System.out.println("Sum of all expenses grouped by categories:");
+        List<Object[]> results = expenseRepository.findSumOfExpensesGroupedByCategory();
+        results.stream().map(r -> "Sum of all expenses: " + r[0] + " from " + r[1] + " transactions, in category:  " + r[2]).collect(Collectors.toList()).forEach(System.out::println);
+    }
+
+    private static String getEndDateBalance() {
+        System.out.println("Provide end date of balance (incomes - expenses) to display: [YYYY-MM-DD]. Or leave this field empty to select current date. ");
+        String endDate = SCANNER.nextLine();
+        return endDate;
+    }
+
+    private static String getStartDateBalance() {
+        System.out.println("Provide start date of balance (incomes - expenses) to display: [YYYY-MM-DD]");
+        String startDate = SCANNER.nextLine();
+        return startDate;
+    }
+
+    private static void readExpensesWithinTimeRange(Repository<Expense, Long> expenseRepository, LocalDate startDate, LocalDate endDate) {
+        List<Expense> expenses = expenseRepository.findAll();
+        expenses.stream().filter(expense -> expense.getDate().isAfter(startDate.minusDays(1))
+                        && expense.getDate().isBefore(endDate.plusDays(1)))
+                .forEach(System.out::println);
+    }
+
+    private static LocalDate getEndDateFromUserInput() {
+        System.out.println("Provide end date of expenses to display: [YYYY-MM-DD]. Or leave this field empty to choose current date.");
+        String endDateAsString = SCANNER.nextLine();
+        LocalDate endDate;
+        if (StringUtils.isNullOrEmpty(endDateAsString)) {
+            endDate = LocalDate.now();
+        } else {
+            endDate = LocalDate.parse(endDateAsString);
+        }
+        return endDate;
+    }
+
+    private static LocalDate getStartDateFromUserInput() {
+        System.out.println("Provide start date of expenses to display: [YYYY-MM-DD]");
+        LocalDate startDate = LocalDate.parse(SCANNER.nextLine());
+        return startDate;
+    }
+
+    private static long getExpenseIdFromUserInput() {
+        System.out.println(" Provide id of expense to update: ");
+        long selectedExpenseId = SCANNER.nextLong();
+        SCANNER.nextLine();
+        return selectedExpenseId;
+    }
+
+    private static String getCommentaryFromUserInput() {
+        System.out.println("Provide commentary (optional): ");
+        String commentary = SCANNER.nextLine();
+        return commentary;
+    }
+
+    private static String getDateAsStringFromUserInput() {
+        System.out.println("Provide expense date or leave this field empty to insert current date: ");
+        String date = SCANNER.nextLine();
+        return date;
+    }
+
+    private static long getCategoryIdFromUserInput(CategoryService categoryService) {
+        System.out.println("Choose from available category ids: ");
+        categoryService.readAll();
+        long categoryId = SCANNER.nextLong();
+        SCANNER.nextLine();
+        return categoryId;
+    }
+
+    private static double getExpenseFromUserInput() {
+        System.out.println("Provide expense amount: ");
+        double amount = SCANNER.nextDouble();
+        SCANNER.nextLine();
+        return amount;
+    }
+
+    private static Long getCategoryIdFromUserInput() {
+        System.out.println("Provide id of category: ");
+        Long id = SCANNER.nextLong();
+        SCANNER.nextLine();
+        return id;
+    }
+
+    private static String getCategoryNameFromUserInput() {
+        System.out.println("Provide new category name: ");
+        String categoryName = SCANNER.nextLine();
+        return categoryName;
+    }
+
+    private static Long getincomeIdFromUserInput() {
+        System.out.println("Provide id of income: ");
+        Long id = SCANNER.nextLong();
+        SCANNER.nextLine();
+        return id;
+    }
+
+    private static String getIncomeDateAsStringFromUserInput() {
+        System.out.println("Provide income date [YYYY-MM-DD] or leave this field empty to insert current date: ");
+        String date = SCANNER.nextLine();
+        return date;
+    }
+
+    private static double getIncomeFromUserInput() {
+        System.out.println("Provide income amount: ");
+        double amount = SCANNER.nextDouble();
+        SCANNER.nextLine();
+        return amount;
+    }
 }
 
