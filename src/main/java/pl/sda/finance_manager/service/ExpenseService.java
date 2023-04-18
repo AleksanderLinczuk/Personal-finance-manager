@@ -21,13 +21,13 @@ public class ExpenseService {
         this.categoryRepository = categoryRepository;
     }
 
-    public void addExpense(double amount, Long selectedCategoryId, String date, String commentary) {
+    public void addExpense(double amount, Long selectedCategoryId, LocalDate date, String commentary) {
         Category category = categoryRepository.findById(selectedCategoryId);
         if (category == null) {
             throw new IllegalArgumentException("Category with id: " + selectedCategoryId + " does not exist!");
         }
         if (amount != 0) {
-            Expense expense = new Expense(amount, category, StringUtils.isNullOrEmpty(date) ? LocalDate.now() : LocalDate.parse(date), commentary);
+            Expense expense = new Expense(amount, category, date, commentary);
             expenseRepository.create(expense);
         } else {
             throw new IllegalArgumentException("Provided data is incorrect");

@@ -152,28 +152,19 @@ public class Main {
             SCANNER.nextLine();
             switch (chosenOperation) {
                 case 1 -> {
-                    double amount = getIncomeFromUserInput();
-                    String date = getIncomeDateAsStringFromUserInput();
-                    String commentary = getCommentaryFromUserInput();
-                    incomeService.addIncome(amount, date, commentary);
+                    addIncome(incomeService);
                 }
                 case 2 -> {
                     incomeService.readAll();
                 }
+
                 case 3 -> {
                     incomeService.readAll();
-                    Long id = getincomeIdFromUserInput();
-                    Income incomeToUpdate = incomeService.findById(id);
-                    double amount = getIncomeFromUserInput();
-                    String date = getIncomeDateAsStringFromUserInput();
-                    String commentary = getCommentaryFromUserInput();
-                    incomeService.updateIncome(incomeToUpdate, amount, date, commentary);
-
+                    updateIncome(incomeService);
                 }
                 case 4 -> {
                     incomeService.readAll();
-                    Long id = getincomeIdFromUserInput();
-                    incomeService.deleteById(id);
+                    deleteIncome(incomeService);
                 }
                 case 0 -> {
                     isIncomeMenuRunning = false;
@@ -182,6 +173,55 @@ public class Main {
                 default -> {
                     System.out.println("Invalid input. Try again");
                 }
+            }
+        }
+    }
+
+    private static void deleteIncome(IncomeService incomeService) {
+        boolean isDeletedSuccessfully = false;
+        while (!isDeletedSuccessfully) {
+            try {
+                Long id = getIncomeIdFromUserInput();
+                incomeService.deleteById(id);
+                isDeletedSuccessfully = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void updateIncome(IncomeService incomeService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                Thread.sleep(500);
+                Long id = getIncomeIdFromUserInput();
+                if (incomeService.findById(id) == null) {
+                    throw new NullPointerException();
+                }
+                Income incomeToUpdate = incomeService.findById(id);
+                double amount = getIncomeFromUserInput();
+                LocalDate date = getDateFromUserInput();
+                String commentary = getCommentaryFromUserInput();
+                incomeService.updateIncome(incomeToUpdate, amount, date, commentary);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void addIncome(IncomeService incomeService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                double amount = getIncomeFromUserInput();
+                LocalDate date = getDateFromUserInput();
+                String commentary = getCommentaryFromUserInput();
+                incomeService.addIncome(amount, date, commentary);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
             }
         }
     }
@@ -195,11 +235,7 @@ public class Main {
             SCANNER.nextLine();
             switch (chosenOperation) {
                 case 1 -> {
-                    double amount = getExpenseFromUserInput();
-                    long categoryId = getCategoryIdFromUserInput(categoryService);
-                    String date = getDateAsStringFromUserInput();
-                    String commentary = getCommentaryFromUserInput();
-                    expenseService.addExpense(amount, categoryId, date, commentary);
+                    addExpense(expenseService, categoryService);
                 }
                 case 2 -> {
                     expenseService.readAll();
@@ -228,6 +264,22 @@ public class Main {
                 default -> {
                     System.out.println("Invalid input. Try again");
                 }
+            }
+        }
+    }
+
+    private static void addExpense(ExpenseService expenseService, CategoryService categoryService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                double amount = getExpenseFromUserInput();
+                long categoryId = getCategoryIdFromUserInput(categoryService);
+                LocalDate date = getDateFromUserInput();
+                String commentary = getCommentaryFromUserInput();
+                expenseService.addExpense(amount, categoryId, date, commentary);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
             }
         }
     }
@@ -345,16 +397,22 @@ public class Main {
         return categoryName;
     }
 
-    private static Long getincomeIdFromUserInput() {
+    private static Long getIncomeIdFromUserInput() {
         System.out.println("Provide id of income: ");
         Long id = SCANNER.nextLong();
         SCANNER.nextLine();
         return id;
     }
 
-    private static String getIncomeDateAsStringFromUserInput() {
-        System.out.println("Provide income date [YYYY-MM-DD] or leave this field empty to insert current date: ");
-        String date = SCANNER.nextLine();
+    private static LocalDate getDateFromUserInput() {
+        System.out.println("Provide date [YYYY-MM-DD] or leave this field empty to insert current date: ");
+        String dateAsString = SCANNER.nextLine();
+        LocalDate date;
+        if (!StringUtils.isNullOrEmpty(dateAsString)) {
+            date = LocalDate.parse(dateAsString);
+        } else {
+            date = LocalDate.now();
+        }
         return date;
     }
 

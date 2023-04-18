@@ -17,15 +17,11 @@ public class IncomeService {
         this.incomeRepository = incomeRepository;
     }
 
-    public void addIncome(double amount, String date, String commentary) {
+    public void addIncome(double amount, LocalDate date, String commentary) {
         if (amount != 0) {
             Income income = new Income();
             income.setAmount(amount);
-            if ((date != null) && (!date.equals(""))) {
-                income.setDate(LocalDate.parse(date));
-            } else {
-                income.setDate(LocalDate.now());
-            }
+            income.setDate(date);
             income.setCommentary(commentary);
             incomeRepository.create(income);
         } else {
@@ -33,14 +29,10 @@ public class IncomeService {
         }
     }
 
-    public void updateIncome(Income income, double amount, String date, String commentary) {
+    public void updateIncome(Income income, double amount, LocalDate date, String commentary) {
         if (amount != 0) {
             income.setAmount(amount);
-            if ((date != null) && (!date.equals(""))) {
-                income.setDate(LocalDate.parse(date));
-            } else {
-                income.setDate(LocalDate.now());
-            }
+            income.setDate(date);
             income.setCommentary(commentary);
             incomeRepository.update(income);
         } else {
@@ -63,25 +55,26 @@ public class IncomeService {
     }
 
     public void deleteById(Long id) {
-        if (id != null) {
+        if (findById(id) != null) {
             incomeRepository.deleteById(id);
         } else {
             throw new IllegalArgumentException("Provided data is incorrect! ");
         }
     }
-    public double sumAllIncomesAmountInTimeRange(String startDate, String endDate){
-        if (!StringUtils.isNullOrEmpty(startDate)){
+
+    public double sumAllIncomesAmountInTimeRange(String startDate, String endDate) {
+        if (!StringUtils.isNullOrEmpty(startDate)) {
             LocalDate startDateParse = LocalDate.parse(startDate);
             LocalDate endDateParse;
-            if (StringUtils.isNullOrEmpty(endDate)){
+            if (StringUtils.isNullOrEmpty(endDate)) {
                 endDateParse = LocalDate.now();
-            }else{
+            } else {
                 endDateParse = LocalDate.parse(endDate);
             }
             double result = ((IncomeRepository) incomeRepository).sumAllIncomesAmountInTimeRange(startDateParse, endDateParse);
             return result;
-        }else{
-            throw  new IllegalArgumentException("Invalid data provided! ");
+        } else {
+            throw new IllegalArgumentException("Invalid data provided! ");
         }
     }
 }
