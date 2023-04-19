@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    public static final String JDBC_URL = "jdbc:mysql://localhost:3306/";
+    private static final String JDBC_URL = "jdbc:mysql://localhost:3306/";
     private static final String DB_NAME = "db_name";
     private static final String DB_USER = "db_user";
     private static final String DB_PASSWORD = "db_password";
@@ -368,7 +368,7 @@ public class Main {
         }
     }
 
-    public static void showMenu() {
+    private static void showMenu() {
         System.out.println("CRUD MENU: \n"
                 + "1 - CATEGORY CRUD \n"
                 + "2 - INCOME CRUD \n"
@@ -382,7 +382,7 @@ public class Main {
                 + "0 - EXIT \n");
     }
 
-    public static void showCrudMenu(String name) {
+    private static void showCrudMenu(String name) {
         System.out.println(name + " MENU: \n"
                 + "1 - CREATE " + name + " \n"
                 + "2 - READ " + name + " \n"
