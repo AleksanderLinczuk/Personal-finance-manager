@@ -64,7 +64,7 @@ public class ExpenseService {
     }
 
     public void deleteById(Long id) {
-        if (id != null) {
+        if (findById(id) != null) {
             expenseRepository.deleteById(id);
         } else {
             throw new IllegalArgumentException("Provided data is incorrect! ");

@@ -84,8 +84,8 @@ public class IncomeRepository implements Repository<Income, Long> {
         TypedQuery<Double> query = entityManager.createQuery("SELECT SUM(amount) FROM Income WHERE date BETWEEN :startDate AND :endDate", double.class);
         query.setParameter("startDate", startDate);
         query.setParameter("endDate", endDate);
-        try {
-            result += query.getFirstResult();
+        try{
+            result += query.getSingleResult();
         }catch (NullPointerException ignored){
         }
         entityManager.close();

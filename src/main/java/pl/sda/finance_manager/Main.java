@@ -33,13 +33,11 @@ public class Main {
     public static void main(String[] args) throws IOException, SQLException {
         try (final Connection connection = DriverManager.getConnection(JDBC_URL + System.getenv(DB_NAME), System.getenv(DB_USER), System.getenv(DB_PASSWORD));) {
             System.out.println("Connected to DB!");
-
             DbInit dbInit = new DbInit(connection);
             dbInit.initDb();
-
             final Repository<Category, Long> categoryRepository = new CategoryRepository();
-            final Repository<Income, Long> incomeRepository = new IncomeRepository();
-            final Repository<Expense, Long> expenseRepository = new ExpenseRepository();
+            final IncomeRepository incomeRepository = new IncomeRepository();
+            final ExpenseRepository expenseRepository = new ExpenseRepository();
             final CategoryService categoryService = new CategoryService(categoryRepository);
             final IncomeService incomeService = new IncomeService(incomeRepository);
             final ExpenseService expenseService = new ExpenseService(expenseRepository, categoryRepository);
@@ -50,55 +48,20 @@ public class Main {
                 int selectedOperation = SCANNER.nextInt();
                 SCANNER.nextLine();
                 switch (selectedOperation) {
-                    case 1 -> {
-                        categoryMenu(categoryService, categoryRepository);
-                    }
-                    case 2 -> {
-                        incomeMenu(incomeService, incomeRepository);
-                    }
-                    case 3 -> {
-                        expenseMenu(expenseService, expenseRepository, categoryService);
-                    }
-                    case 4 -> {
-                        System.out.println("List of all incomes: ");
-                        incomeService.readAll();
-                        System.out.println("List of all expenses: ");
-                        expenseService.readAll();
-                    }
-                    case 5 -> {
-                        LocalDate startDate = getStartDateFromUserInput();
-                        LocalDate endDate = getEndDateFromUserInput();
-                        readExpensesWithinTimeRange(expenseRepository, startDate, endDate);
-                    }
-                    case 6 -> {
-                        System.out.println("Select id of category to filter expenses by: ");
-                        categoryService.readAll();
-                        Long selectedId = SCANNER.nextLong();
-                        SCANNER.nextLine();
-                        expenseService.readExpensesFilteredByCategory(selectedId, categoryService);
-                    }
-                    case 7 -> {
-                        double sumAllIncomesAmount = ((IncomeRepository) incomeRepository).sumAllIncomesAmount();
-                        double sumAllExpensesAmount = ((ExpenseRepository) expenseRepository).sumAllExpensesAmount();
-                        System.out.println("Your total balance (all incomes - all expenses) is : " + (sumAllIncomesAmount - sumAllExpensesAmount) + "\n");
-                    }
-                    case 8 -> {
-                        String startDate = getStartDateBalance();
-                        String endDate = getEndDateBalance();
-                        double incomesAmountInTimeRange = incomeService.sumAllIncomesAmountInTimeRange(startDate, endDate);
-                        double expensesAmountInTimeRange = expenseService.sumAllExpensesAmountInTimeRange(startDate, endDate);
-                        System.out.println(" Your total balance in time range from " + startDate + " to " + endDate + " is : " + (incomesAmountInTimeRange - expensesAmountInTimeRange) + "\n");
-                    }
-                    case 9 -> {
-                        readExpensesGroupedByCategory((ExpenseRepository) expenseRepository);
-                    }
+                    case 1 -> categoryMenu(categoryService, categoryRepository);
+                    case 2 -> incomeMenu(incomeService, incomeRepository);
+                    case 3 -> expenseMenu(expenseService, expenseRepository, categoryService);
+                    case 4 -> listAllIncomesAndExpenses(incomeService, expenseService);
+                    case 5 -> listExpensesInProvidedTimeRange(expenseRepository);
+                    case 6 -> listExpensesFilteredByCategory(categoryService, expenseService);
+                    case 7 -> displayTotalBalance(incomeRepository, expenseRepository);
+                    case 8 -> displayTotalBalanceInTimeRange(incomeService, expenseService);
+                    case 9 -> readExpensesGroupedByCategory(expenseRepository);
                     case 0 -> {
                         isProgramRunning = false;
                         System.out.println("Goodbye!");
                     }
-                    default -> {
-                        System.out.println("Invalid input. Try again");
-                    }
+                    default -> System.out.println("Invalid input. Try again");
                 }
             }
         }
@@ -113,24 +76,18 @@ public class Main {
             SCANNER.nextLine();
             switch (chosenOperation) {
                 case 1 -> {
-                    String categoryName = getCategoryNameFromUserInput();
-                    categoryService.addCategory(categoryName);
+                    addCategory(categoryService);
                 }
                 case 2 -> {
                     categoryService.readAll();
                 }
                 case 3 -> {
                     categoryService.readAll();
-                    Long id = getCategoryIdFromUserInput();
-                    Category categoryToUpdate = categoryService.findById(id);
-                    String updatedName = getCategoryNameFromUserInput();
-                    categoryToUpdate.setName(updatedName);
-                    categoryRepository.update(categoryToUpdate);
+                    updateCategory(categoryService, categoryRepository);
                 }
                 case 4 -> {
                     categoryService.readAll();
-                    Long id = getCategoryIdFromUserInput();
-                    categoryService.deleteById(id);
+                    deleteCategory(categoryService);
                 }
                 case 0 -> {
                     isCategoryMenuRunning = false;
@@ -157,7 +114,6 @@ public class Main {
                 case 2 -> {
                     incomeService.readAll();
                 }
-
                 case 3 -> {
                     incomeService.readAll();
                     updateIncome(incomeService);
@@ -176,6 +132,143 @@ public class Main {
             }
         }
     }
+
+    private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
+        boolean isExpenseMenuRunning = true;
+        while (isExpenseMenuRunning) {
+            String name = "EXPENSE";
+            showCrudMenu(name);
+            int chosenOperation = SCANNER.nextInt();
+            SCANNER.nextLine();
+            switch (chosenOperation) {
+                case 1 -> {
+                    addExpense(expenseService, categoryService);
+                }
+                case 2 -> {
+                    expenseService.readAll();
+                }
+                case 3 -> {
+                    expenseService.readAll();
+                    updateExpense(expenseService, categoryService);
+
+                }
+                case 4 -> {
+                    expenseService.readAll();
+                    deleteExpense(expenseService);
+                }
+                case 0 -> {
+                    isExpenseMenuRunning = false;
+                    System.out.println("Exited " + name + " menu!");
+                }
+                default -> {
+                    System.out.println("Invalid input. Try again");
+                }
+            }
+        }
+    }
+
+    private static void displayTotalBalanceInTimeRange(IncomeService incomeService, ExpenseService expenseService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                String startDate = getStartDateBalance();
+                String endDate = getEndDateBalance();
+                double incomesAmountInTimeRange = incomeService.sumAllIncomesAmountInTimeRange(startDate, endDate);
+                double expensesAmountInTimeRange = expenseService.sumAllExpensesAmountInTimeRange(startDate, endDate);
+                System.out.println(" Your total balance in time range from " + startDate + " to " + (StringUtils.isNullOrEmpty(endDate) ? LocalDate.now() : endDate) + " is : " + (incomesAmountInTimeRange - expensesAmountInTimeRange) + "\n");
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void displayTotalBalance(IncomeRepository incomeRepository, ExpenseRepository expenseRepository) {
+        double sumAllIncomesAmount = incomeRepository.sumAllIncomesAmount();
+        double sumAllExpensesAmount = expenseRepository.sumAllExpensesAmount();
+        System.out.println("Your total balance (all incomes - all expenses) is : " + (sumAllIncomesAmount - sumAllExpensesAmount) + "\n");
+    }
+
+    private static void listExpensesFilteredByCategory(CategoryService categoryService, ExpenseService expenseService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                System.out.println("Select id of category to filter expenses by: ");
+                categoryService.readAll();
+                Long selectedId = SCANNER.nextLong();
+                SCANNER.nextLine();
+                expenseService.readExpensesFilteredByCategory(selectedId, categoryService);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void listExpensesInProvidedTimeRange(Repository<Expense, Long> expenseRepository) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                LocalDate startDate = getStartDateFromUserInput();
+                LocalDate endDate = getEndDateFromUserInput();
+                readExpensesWithinTimeRange(expenseRepository, startDate, endDate);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void listAllIncomesAndExpenses(IncomeService incomeService, ExpenseService expenseService) {
+        System.out.println("List of all incomes: ");
+        incomeService.readAll();
+        System.out.println("List of all expenses: ");
+        expenseService.readAll();
+    }
+
+
+    private static void deleteCategory(CategoryService categoryService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                Long id = getCategoryIdFromUserInput();
+                categoryService.deleteById(id);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void updateCategory(CategoryService categoryService, Repository<Category, Long> categoryRepository) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                Long id = getCategoryIdFromUserInput();
+                Category categoryToUpdate = categoryService.findById(id);
+                String updatedName = getCategoryNameFromUserInput();
+                categoryToUpdate.setName(updatedName);
+                categoryRepository.update(categoryToUpdate);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void addCategory(CategoryService categoryService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                String categoryName = getCategoryNameFromUserInput();
+                categoryService.addCategory(categoryName);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
 
     private static void deleteIncome(IncomeService incomeService) {
         boolean isDeletedSuccessfully = false;
@@ -226,44 +319,34 @@ public class Main {
         }
     }
 
-    private static void expenseMenu(ExpenseService expenseService, Repository<Expense, Long> expenseRepository, CategoryService categoryService) {
-        boolean isExpenseMenuRunning = true;
-        while (isExpenseMenuRunning) {
-            String name = "EXPENSE";
-            showCrudMenu(name);
-            int chosenOperation = SCANNER.nextInt();
-            SCANNER.nextLine();
-            switch (chosenOperation) {
-                case 1 -> {
-                    addExpense(expenseService, categoryService);
-                }
-                case 2 -> {
-                    expenseService.readAll();
-                }
-                case 3 -> {
-                    expenseService.readAll();
-                    long selectedExpenseId = getExpenseIdFromUserInput();
-                    Expense expenseToUpdate = expenseService.findById(selectedExpenseId);
-                    double amount = getExpenseFromUserInput();
-                    long categoryId = getCategoryIdFromUserInput(categoryService);
-                    String date = getDateAsStringFromUserInput();
-                    String commentary = getCommentaryFromUserInput();
-                    expenseService.updateExpense(expenseToUpdate, amount, categoryId, date, commentary);
-                }
-                case 4 -> {
-                    System.out.println("Provide id of expense to delete: ");
-                    expenseService.readAll();
-                    long id = SCANNER.nextLong();
-                    SCANNER.nextLine();
-                    expenseService.deleteById(id);
-                }
-                case 0 -> {
-                    isExpenseMenuRunning = false;
-                    System.out.println("Exited " + name + " menu!");
-                }
-                default -> {
-                    System.out.println("Invalid input. Try again");
-                }
+
+    private static void deleteExpense(ExpenseService expenseService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                long selectedExpenseId = getExpenseIdFromUserInput();
+                expenseService.deleteById(selectedExpenseId);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
+            }
+        }
+    }
+
+    private static void updateExpense(ExpenseService expenseService, CategoryService categoryService) {
+        boolean isDataCorrect = false;
+        while (!isDataCorrect) {
+            try {
+                long selectedExpenseId = getExpenseIdFromUserInput();
+                Expense expenseToUpdate = expenseService.findById(selectedExpenseId);
+                double amount = getExpenseFromUserInput();
+                long categoryId = getCategoryIdFromUserInput(categoryService);
+                String date = getDateAsStringFromUserInput();
+                String commentary = getCommentaryFromUserInput();
+                expenseService.updateExpense(expenseToUpdate, amount, categoryId, date, commentary);
+                isDataCorrect = true;
+            } catch (Exception e) {
+                System.err.println("Invalid data provided! Please try again. ");
             }
         }
     }
@@ -272,6 +355,7 @@ public class Main {
         boolean isDataCorrect = false;
         while (!isDataCorrect) {
             try {
+                Thread.sleep(500);
                 double amount = getExpenseFromUserInput();
                 long categoryId = getCategoryIdFromUserInput(categoryService);
                 LocalDate date = getDateFromUserInput();
@@ -351,7 +435,7 @@ public class Main {
     }
 
     private static long getExpenseIdFromUserInput() {
-        System.out.println(" Provide id of expense to update: ");
+        System.out.println(" Provide id of expense: ");
         long selectedExpenseId = SCANNER.nextLong();
         SCANNER.nextLine();
         return selectedExpenseId;
